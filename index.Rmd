@@ -7,4 +7,4 @@ output: html_document
 
 # Super Simple Website
 ## Made by drew
-Click About Me to learn About Me
+Click About Me to learn About Me!
