@@ -1,0 +1,24 @@
+---
+title: "About Me"
+author: "Andrew Larsen"
+date: "3/21/2020"
+output: html_document
+---
+# About Me
+
+Name: Drew
+
+From: Boston, MA
+
+Interests: Skiing, Soccer, Coffee, Tea, Running, Math, Cats
+
+Undergrad: University of Vermont
+
+Graduate: Southern Methodist University
+
+Check out the other tabs to see some awesome analyses that I have done!
+
+Here's a picture of my cat:
+```{r,echo=FALSE, fig.cap="Angie the Cat", out.width = "25%"}
+knitr::include_graphics("AboutMe/Angie.jpg")
+```
