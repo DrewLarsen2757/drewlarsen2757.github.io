@@ -6,3 +6,5 @@ navbar:
       href: index.html
     - text: "About Me"
       href: AboutMe.html
+    - text: "Beer Study"
+      href: Beer.html
