@@ -322,62 +322,55 @@ $(document).ready(function () {
 <h1>Exploratory Data Analysis</h1>
 <pre class="r"><code>df = read.csv(&quot;/Users/drew/Desktop/Masters/SecondSemester/DDS/Project2/CaseStudy2-data.csv&quot;, header = TRUE)
 head(df)</code></pre>
-<pre><code>##   ID Age Attrition    BusinessTravel DailyRate             Department
-## 1  1  32        No     Travel_Rarely       117                  Sales
-## 2  2  40        No     Travel_Rarely      1308 Research &amp; Development
-## 3  3  35        No Travel_Frequently       200 Research &amp; Development
-## 4  4  32        No     Travel_Rarely       801                  Sales
-## 5  5  24        No Travel_Frequently       567 Research &amp; Development
-## 6  6  27        No Travel_Frequently       294 Research &amp; Development
-##   DistanceFromHome Education   EducationField EmployeeCount EmployeeNumber
-## 1               13         4    Life Sciences             1            859
-## 2               14         3          Medical             1           1128
-## 3               18         2    Life Sciences             1           1412
-## 4                1         4        Marketing             1           2016
-## 5                2         1 Technical Degree             1           1646
-## 6               10         2    Life Sciences             1            733
-##   EnvironmentSatisfaction Gender HourlyRate JobInvolvement JobLevel
-## 1                       2   Male         73              3        2
-## 2                       3   Male         44              2        5
-## 3                       3   Male         60              3        3
-## 4                       3 Female         48              3        3
-## 5                       1 Female         32              3        1
-## 6                       4   Male         32              3        3
-##                  JobRole JobSatisfaction MaritalStatus MonthlyIncome
-## 1        Sales Executive               4      Divorced          4403
-## 2      Research Director               3        Single         19626
-## 3 Manufacturing Director               4        Single          9362
-## 4        Sales Executive               4       Married         10422
-## 5     Research Scientist               4        Single          3760
-## 6 Manufacturing Director               1      Divorced          8793
-##   MonthlyRate NumCompaniesWorked Over18 OverTime PercentSalaryHike
-## 1        9250                  2      Y       No                11
-## 2       17544                  1      Y       No                14
-## 3       19944                  2      Y       No                11
-## 4       24032                  1      Y       No                19
-## 5       17218                  1      Y      Yes                13
-## 6        4809                  1      Y       No                21
-##   PerformanceRating RelationshipSatisfaction StandardHours StockOptionLevel
-## 1                 3                        3            80                1
-## 2                 3                        1            80                0
-## 3                 3                        3            80                0
-## 4                 3                        3            80                2
-## 5                 3                        3            80                0
-## 6                 4                        3            80                2
-##   TotalWorkingYears TrainingTimesLastYear WorkLifeBalance YearsAtCompany
-## 1                 8                     3               2              5
-## 2                21                     2               4             20
-## 3                10                     2               3              2
-## 4                14                     3               3             14
-## 5                 6                     2               3              6
-## 6                 9                     4               2              9
-##   YearsInCurrentRole YearsSinceLastPromotion YearsWithCurrManager
-## 1                  2                       0                    3
-## 2                  7                       4                    9
-## 3                  2                       2                    2
-## 4                 10                       5                    7
-## 5                  3                       1                    3
-## 6                  7                       1                    7</code></pre>
+<pre><code>##   ID Age Attrition    BusinessTravel DailyRate             Department DistanceFromHome
+## 1  1  32        No     Travel_Rarely       117                  Sales               13
+## 2  2  40        No     Travel_Rarely      1308 Research &amp; Development               14
+## 3  3  35        No Travel_Frequently       200 Research &amp; Development               18
+## 4  4  32        No     Travel_Rarely       801                  Sales                1
+## 5  5  24        No Travel_Frequently       567 Research &amp; Development                2
+## 6  6  27        No Travel_Frequently       294 Research &amp; Development               10
+##   Education   EducationField EmployeeCount EmployeeNumber EnvironmentSatisfaction Gender
+## 1         4    Life Sciences             1            859                       2   Male
+## 2         3          Medical             1           1128                       3   Male
+## 3         2    Life Sciences             1           1412                       3   Male
+## 4         4        Marketing             1           2016                       3 Female
+## 5         1 Technical Degree             1           1646                       1 Female
+## 6         2    Life Sciences             1            733                       4   Male
+##   HourlyRate JobInvolvement JobLevel                JobRole JobSatisfaction MaritalStatus
+## 1         73              3        2        Sales Executive               4      Divorced
+## 2         44              2        5      Research Director               3        Single
+## 3         60              3        3 Manufacturing Director               4        Single
+## 4         48              3        3        Sales Executive               4       Married
+## 5         32              3        1     Research Scientist               4        Single
+## 6         32              3        3 Manufacturing Director               1      Divorced
+##   MonthlyIncome MonthlyRate NumCompaniesWorked Over18 OverTime PercentSalaryHike
+## 1          4403        9250                  2      Y       No                11
+## 2         19626       17544                  1      Y       No                14
+## 3          9362       19944                  2      Y       No                11
+## 4         10422       24032                  1      Y       No                19
+## 5          3760       17218                  1      Y      Yes                13
+## 6          8793        4809                  1      Y       No                21
+##   PerformanceRating RelationshipSatisfaction StandardHours StockOptionLevel TotalWorkingYears
+## 1                 3                        3            80                1                 8
+## 2                 3                        1            80                0                21
+## 3                 3                        3            80                0                10
+## 4                 3                        3            80                2                14
+## 5                 3                        3            80                0                 6
+## 6                 4                        3            80                2                 9
+##   TrainingTimesLastYear WorkLifeBalance YearsAtCompany YearsInCurrentRole
+## 1                     3               2              5                  2
+## 2                     2               4             20                  7
+## 3                     2               3              2                  2
+## 4                     3               3             14                 10
+## 5                     2               3              6                  3
+## 6                     4               2              9                  7
+##   YearsSinceLastPromotion YearsWithCurrManager
+## 1                       0                    3
+## 2                       4                    9
+## 3                       2                    2
+## 4                       5                    7
+## 5                       1                    3
+## 6                       1                    7</code></pre>
 <p>After reading the data in, we first looked at NA values and the type of data that we will be working with. There are not any NA values in the data set. There are 9 factor variables and 27 integer variables, including Attrition and Monthly Income, the two variables we are tasked with predicting.</p>
 <pre class="r"><code>colnames(df)[colSums(is.na(df))&gt;0] #no NA values</code></pre>
 <pre><code>## character(0)</code></pre>
@@ -597,8 +590,8 @@ for(j in 1:iterations)
   masterSpec[j] = CM$byClass[2]
   masterSens[j] = CM$byClass[1]
 }</code></pre>
-<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
-## prediction from a rank-deficient fit may be misleading</code></pre>
+<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == : prediction from a
+## rank-deficient fit may be misleading</code></pre>
 <pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
 
 ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
@@ -982,18 +975,18 @@ for(j in 1:iterations)
 ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
 
 ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
-## prediction from a rank-deficient fit may be misleading</code></pre>
+<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == : prediction from a
+## rank-deficient fit may be misleading</code></pre>
 <pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
 
 ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
 
 ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
-## prediction from a rank-deficient fit may be misleading
+<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == : prediction from a
+## rank-deficient fit may be misleading
 
-## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
-## prediction from a rank-deficient fit may be misleading</code></pre>
+## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == : prediction from a
+## rank-deficient fit may be misleading</code></pre>
 <pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
 
 ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
@@ -2691,72 +2684,39 @@ for(j in 1:iterations)
 ## -2.19342  -0.44979   0.00193   0.46952   2.42591  
 ## 
 ## Coefficients:
-##                                                 Estimate Std. Error z value
-## (Intercept)                                    1.9429565  3.7945733   0.512
-## Age                                            0.0271341  0.0820498   0.331
-## BusinessTravelTravel_Frequently                4.5065430  1.6775044   2.686
-## BusinessTravelTravel_Rarely                    1.4485437  1.3799735   1.050
-## EnvironmentSatisfaction                       -0.3656875  0.2059852  -1.775
-## GenderMale                                     1.5988308  0.5211477   3.068
-## JobInvolvement                                -0.8726612  0.3478070  -2.509
-## JobLevel                                       1.3485753  0.8233002   1.638
-## JobRoleHuman Resources                         1.9498489  1.5203584   1.282
-## JobRoleLaboratory Technician                  -0.1141987  1.0982264  -0.104
-## JobRoleManager                                -4.8455627  2.2743127  -2.131
-## JobRoleManufacturing Director                 -3.4652696  1.9016650  -1.822
-## JobRoleResearch Director                      -2.1789709  2.2022167  -0.989
-## JobRoleResearch Scientist                     -1.5400044  1.1383105  -1.353
-## JobRoleSales Executive                        -0.5921519  0.9089762  -0.651
-## JobRoleSales Representative                    2.4216923  1.3590860   1.782
-## JobSatisfaction                               -1.2043875  0.2772197  -4.345
-## MaritalStatusMarried                           1.4212091  3.1301948   0.454
-## MaritalStatusSingle                            7.9805433  3.3076352   2.413
-## MonthlyIncome                                  0.0002423  0.0003219   0.753
-## NumCompaniesWorked                             0.3193569  0.1125499   2.837
-## OverTimeYes                                    2.9210894  0.5668228   5.153
-## TotalWorkingYears                             -0.2321748  0.0846768  -2.742
-## TrainingTimesLastYear                         -0.4633121  0.1663195  -2.786
-## WorkLifeBalance                               -0.8469251  0.3177831  -2.665
-## YearsAtCompany                                 0.2880364  0.0998429   2.885
-## YearsInCurrentRole                            -0.3014540  0.1265394  -2.382
-## YearsSinceLastPromotion                        0.1844311  0.0993490   1.856
-## Age:MaritalStatusMarried                       0.0259812  0.0860946   0.302
-## Age:MaritalStatusSingle                       -0.1657043  0.0924321  -1.793
-## BusinessTravelTravel_Frequently:MonthlyIncome -0.0006730  0.0003198  -2.105
-## BusinessTravelTravel_Rarely:MonthlyIncome     -0.0002995  0.0002600  -1.152
-##                                               Pr(&gt;|z|)    
-## (Intercept)                                    0.60863    
-## Age                                            0.74087    
-## BusinessTravelTravel_Frequently                0.00722 ** 
-## BusinessTravelTravel_Rarely                    0.29386    
-## EnvironmentSatisfaction                        0.07585 .  
-## GenderMale                                     0.00216 ** 
-## JobInvolvement                                 0.01211 *  
-## JobLevel                                       0.10142    
-## JobRoleHuman Resources                         0.19967    
-## JobRoleLaboratory Technician                   0.91718    
-## JobRoleManager                                 0.03313 *  
-## JobRoleManufacturing Director                  0.06842 .  
-## JobRoleResearch Director                       0.32245    
-## JobRoleResearch Scientist                      0.17609    
-## JobRoleSales Executive                         0.51476    
-## JobRoleSales Representative                    0.07477 .  
-## JobSatisfaction                               1.40e-05 ***
-## MaritalStatusMarried                           0.64981    
-## MaritalStatusSingle                            0.01583 *  
-## MonthlyIncome                                  0.45160    
-## NumCompaniesWorked                             0.00455 ** 
-## OverTimeYes                                   2.56e-07 ***
-## TotalWorkingYears                              0.00611 ** 
-## TrainingTimesLastYear                          0.00534 ** 
-## WorkLifeBalance                                0.00770 ** 
-## YearsAtCompany                                 0.00392 ** 
-## YearsInCurrentRole                             0.01721 *  
-## YearsSinceLastPromotion                        0.06340 .  
-## Age:MaritalStatusMarried                       0.76282    
-## Age:MaritalStatusSingle                        0.07302 .  
-## BusinessTravelTravel_Frequently:MonthlyIncome  0.03533 *  
-## BusinessTravelTravel_Rarely:MonthlyIncome      0.24930    
+##                                                 Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)                                    1.9429565  3.7945733   0.512  0.60863    
+## Age                                            0.0271341  0.0820498   0.331  0.74087    
+## BusinessTravelTravel_Frequently                4.5065430  1.6775044   2.686  0.00722 ** 
+## BusinessTravelTravel_Rarely                    1.4485437  1.3799735   1.050  0.29386    
+## EnvironmentSatisfaction                       -0.3656875  0.2059852  -1.775  0.07585 .  
+## GenderMale                                     1.5988308  0.5211477   3.068  0.00216 ** 
+## JobInvolvement                                -0.8726612  0.3478070  -2.509  0.01211 *  
+## JobLevel                                       1.3485753  0.8233002   1.638  0.10142    
+## JobRoleHuman Resources                         1.9498489  1.5203584   1.282  0.19967    
+## JobRoleLaboratory Technician                  -0.1141987  1.0982264  -0.104  0.91718    
+## JobRoleManager                                -4.8455627  2.2743127  -2.131  0.03313 *  
+## JobRoleManufacturing Director                 -3.4652696  1.9016650  -1.822  0.06842 .  
+## JobRoleResearch Director                      -2.1789709  2.2022167  -0.989  0.32245    
+## JobRoleResearch Scientist                     -1.5400044  1.1383105  -1.353  0.17609    
+## JobRoleSales Executive                        -0.5921519  0.9089762  -0.651  0.51476    
+## JobRoleSales Representative                    2.4216923  1.3590860   1.782  0.07477 .  
+## JobSatisfaction                               -1.2043875  0.2772197  -4.345 1.40e-05 ***
+## MaritalStatusMarried                           1.4212091  3.1301948   0.454  0.64981    
+## MaritalStatusSingle                            7.9805433  3.3076352   2.413  0.01583 *  
+## MonthlyIncome                                  0.0002423  0.0003219   0.753  0.45160    
+## NumCompaniesWorked                             0.3193569  0.1125499   2.837  0.00455 ** 
+## OverTimeYes                                    2.9210894  0.5668228   5.153 2.56e-07 ***
+## TotalWorkingYears                             -0.2321748  0.0846768  -2.742  0.00611 ** 
+## TrainingTimesLastYear                         -0.4633121  0.1663195  -2.786  0.00534 ** 
+## WorkLifeBalance                               -0.8469251  0.3177831  -2.665  0.00770 ** 
+## YearsAtCompany                                 0.2880364  0.0998429   2.885  0.00392 ** 
+## YearsInCurrentRole                            -0.3014540  0.1265394  -2.382  0.01721 *  
+## YearsSinceLastPromotion                        0.1844311  0.0993490   1.856  0.06340 .  
+## Age:MaritalStatusMarried                       0.0259812  0.0860946   0.302  0.76282    
+## Age:MaritalStatusSingle                       -0.1657043  0.0924321  -1.793  0.07302 .  
+## BusinessTravelTravel_Frequently:MonthlyIncome -0.0006730  0.0003198  -2.105  0.03533 *  
+## BusinessTravelTravel_Rarely:MonthlyIncome     -0.0002995  0.0002600  -1.152  0.24930    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
