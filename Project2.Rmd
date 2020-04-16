@@ -1,0 +1,416 @@
+---
+title: "Project 2"
+author: "Andrew Larsen"
+date: "3/28/2020"
+output: html_document
+---
+# Youtube Link: https://www.youtube.com/watch?v=CJ9QYGJSA9U
+
+# Executive Summary
+Our main goal was to determine the top 3 factors that lead to turnover by building a model that can predict employee attrition using the dataset CaseStudy2-data.csv. Frito Lay was also interested in a regression model that could be used to predict employee salary, and any other trends that we found in our exploratory data analysis. In our EDA, it was determined that gender does not affect salary, years with current manager nor job satisfaction. We built 4 different models to predict employee attrition using k-Nearest Neighbors, Naive Bayes, Linear Discriminant Analysis and Logistic Regression. It was determined that the Logistic Regression model best predicted employee attrition, with an average accuracy of 68.5% and an average sensitivity of 72.7%. We determined the top 3 factors that determined employee attrition using the Logistic Regression model: if someone works overtime, job satisfaction score and job role. The specific job roles that are less likely to leave are Manager and Manufacturing Director. Sales Representatives are more likely to leave than any other job role. To predict employee salary, we built a linear regression model with variables Age, PercentSalaryHike, JobLevel, TotalWorkingYears and YearsAtCompany. This model had an average root mean squared error of $1,050. 
+
+# Introduction
+__Our team at DDSAnalytics was tasked by Frito Lay to develop the company's first application of data science for talent management. Specific tasks achieved in this analysis:__
+
+__Identification of top 3 factors that lead to turnover__
+
+__Creation of model to predict employee attrition__
+
+__Creation of model to predict employee monthly income__
+
+__Exploration of any other trends that we find in the data__
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(class)
+library(caret)
+library(e1071)
+library(tree)
+library(MASS)
+library(leaps)
+```
+
+# Exploratory Data Analysis
+```{r}
+df = read.csv("/Users/drew/Desktop/Masters/SecondSemester/DDS/Project2/CaseStudy2-data.csv", header = TRUE)
+head(df)
+```
+
+After reading the data in, we first looked at NA values and the type of data that we will be working with. There are not any NA values in the data set. There are 9 factor variables and 27 integer variables, including Attrition and Monthly Income, the two variables we are tasked with predicting. 
+```{r}
+colnames(df)[colSums(is.na(df))>0] #no NA values
+table(sapply(df, class)) # 9 factor, 27 integer
+```
+
+
+In our initial EDA, we looked at variables that were correlated with monthly income. As you can see, Age, PercentSalaryHike, JobLevel, TotalWorkingYears and YearsAtCompany are all highly correlated with Monthly Income. 
+```{r}
+ggplot(data = df, aes(x = Age, y = MonthlyIncome)) +
+  geom_point() + ggtitle("Age vs. Monthly Income") + 
+  xlab('Age') + ylab('Monthly Income')
+
+ggplot(data = df, aes(x = PercentSalaryHike, y = MonthlyIncome)) +
+  geom_point() + ggtitle("Percent Salary Hike vs. Monthly Income") + 
+  xlab('Percent Salary Hike') + ylab('Monthly Income')
+
+ggplot(data = df, aes(x = JobLevel, y = MonthlyIncome)) +
+  geom_point() + ggtitle("Job Level vs. Monthly Income") + 
+  xlab('Job Level') + ylab('Monthly Income')
+
+ggplot(data = df, aes(x = TotalWorkingYears, y = MonthlyIncome)) +
+  geom_point() + ggtitle("Total Working Years vs. Monthly Income") + 
+  xlab('Total Working Years') + ylab('Monthly Income')
+
+ggplot(data = df, aes(x = YearsAtCompany, y = MonthlyIncome)) +
+  geom_point() + ggtitle("Years At Company vs. Monthly Income") + 
+  xlab('Years At Company') + ylab('Monthly Income')
+```
+
+To aid in our prediction of attrition, we put together a Principal Component Analysis as well. 
+```{r}
+# PCA
+DDSPCAdf = df[,c(2,5,7,8,11:12,14:16,18,20:22,25:27,29:36)]
+DDSpc.result<-prcomp(DDSPCAdf,scale.=TRUE)
+DDSpc.scores<-DDSpc.result$x
+```
+
+Looking at the Scree and Cumulative Proportion plots below, it is evident that it takes many principal components to explain the variance in the data. We don't hit 90% of the variance until the 17th Principal component. This data set has quite a bit of variance in many dimensions. 
+```{r}
+DDSeigenvals<-(DDSpc.result$sdev)^2
+plot(1:24,DDSeigenvals/sum(DDSeigenvals),type="l",main="Scree Plot",ylab="Prop. Var. Explained", xlab = "Principal Component Number")
+DDScumulative.prop<-cumsum(DDSeigenvals/sum(DDSeigenvals))
+plot(1:24,DDScumulative.prop,type="l",main="Cumulative Proportion of Variance Explained by Principal Components", xlab = 'Principal Component', ylab = 'Cumulative Proportion',ylim=c(0,1))
+par(mfrow=c(1,1))
+```
+
+Looking at the first few Principal components colored by Attrition, there isn't a lot that differentiates between Yes and No. Both seem to be scattered equally comparing Principal Component 1 and 2, and comparing Principal Component 2 and 3. 
+```{r}
+#Adding the response column to the PC's data frame
+DDSpc.scores<-data.frame(DDSpc.scores)
+DDSpc.scores$Attrition<-df$Attrition
+
+#Use ggplot2 to plot the first few pc's
+
+ggplot(data = DDSpc.scores, aes(x = PC1, y = PC2)) +
+  geom_point(aes(col=Attrition), size=1)+
+  ggtitle("PCA of Bank Data")
+
+ggplot(data = DDSpc.scores, aes(x = PC2, y = PC3)) +
+  geom_point(aes(col=Attrition), size=1)+
+  ggtitle("PCA of Bank Data")
+```
+
+We then looked at interactions between some variables and how they affected Attrition. Looking at the below plots, we decided to build interaction terms for Department and Age, JobRole and Age, MaritalStatus and Age, BusinessTravel and MonthlyIncome and EducationField and Monthly Income into our models as interaction terms. Looks like there may be some sort of interaction in these variables for attrition prediction. 
+```{r} 
+
+ggplot(data = df, aes(x = df$Department, y = Age, col = Attrition)) + geom_boxplot()+ ggtitle("Attrition, Department and Age") + 
+  xlab('Department') + ylab('Age')
+
+ggplot(data = df, aes(x = df$JobRole, y = Age, col = Attrition)) + geom_boxplot()+ ggtitle("Attrition, Job Role and Age") + 
+  xlab('Job Role') + ylab('Age')
+
+ggplot(data = df, aes(x = df$MaritalStatus, y = Age, col = Attrition)) + geom_boxplot()+ ggtitle("Attrition, Marital Status and Age") + 
+  xlab('Marital Status') + ylab('Age')
+
+ggplot(data = df, aes(x = df$BusinessTravel, y = MonthlyIncome, col = Attrition)) + geom_boxplot()+ ggtitle("Attrition, Business Travel and Monthly Income") + 
+  xlab('Business Travel') + ylab('Monthly Income')
+
+ggplot(data = df, aes(x = df$EducationField, y = MonthlyIncome, col = Attrition)) + geom_boxplot()+ ggtitle("Attrition, Education Field and Monthly Income") + 
+  xlab('Education Field') + ylab('Monthly Income')
+
+
+```
+
+
+Finally, we wanted to look at how certain variables affected each other. There does not seem to be any significant difference in Monthly Rate for Gender, Education or work life balance. Likewise, there doesn't seem to be a significant difference in Years with Current Manager between gender, and there doesn't seem to be a significant interaction between marital status and gender when it comes to predicting job satisfaction. Frito Lay has done a great job creating equal work opportunity between men and women. 
+```{r}
+boxplot(df$MonthlyRate ~ df$Gender, xlab = 'Gender', ylab = 'Monthly Rate', main = 'Gender vs. Monthly Rate') 
+boxplot(df$MonthlyRate ~ df$Education, xlab = 'Education', ylab = 'Monthly Rate', main = 'Education vs. Monthly Rate')
+boxplot(df$YearsWithCurrManager ~ df$Gender, xlab = 'Gender', ylab = 'Years with Current Manager', main = 'Years with Current Manager vs. Gender')
+boxplot(df$MonthlyRate ~ df$WorkLifeBalance, xlab = 'Work Life Balance', ylab = 'Monthly Rate', main = 'Work Life Balance vs. Monthly Rate') 
+boxplot(df$JobSatisfaction ~ df$MaritalStatus*df$Gender, xlab = 'Marital Status and Gender', ylab = 'Job Satisfaction', main = 'Marital Status, Gender and Job Satisfaction')
+```
+
+Train test split. Due to the imbalance of yes and no in the dataset, all of the attrition prediction models have equal amounts of yes and no in the train dataset. In this case, putting 80% of the data into a train dataset means putting 80% of the yes and the same amount of no in the train dataset, and putting everything else into the test dataset. This will allow our model to have a higher sensitivity rate, also known as true positive rate.
+```{r}
+set.seed(1234)
+splitPerc = .8
+DDSyesdf = df[df$Attrition == 'Yes',]
+DDSnodf = df[df$Attrition == 'No',]
+
+
+DDSyesTrainIndices = sample(1:dim(DDSyesdf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+DDSnoTrainIndices = sample(1:dim(DDSnodf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+
+DDSyestrain = DDSyesdf[DDSyesTrainIndices,]
+DDSyestest = DDSyesdf[-DDSyesTrainIndices,]
+DDSnotrain = DDSnodf[DDSnoTrainIndices,]
+DDSnotest = DDSnodf[-DDSnoTrainIndices,]
+
+DDStrain = rbind(DDSyestrain, DDSnotrain)
+DDStest = rbind(DDSyestest, DDSnotest)
+
+```
+
+## Attrition Prediction
+Our first model is a k-NN with all numeric variables thrown into the model. The k with the highest mean accuracy and sensitivity had both values below 60%, so this model would not be used. 
+```{r}
+# Baseline KNN - Attrition
+iterations = 50
+numks = 30
+splitPerc = .8
+
+DDSyesdf = df[df$Attrition == 'Yes',]
+DDSnodf = df[df$Attrition == 'No',]
+masterAcc = matrix(nrow = iterations, ncol = numks)
+masterSens = matrix(nrow = iterations, ncol = numks)
+masterSpec = matrix(nrow = iterations, ncol = numks)
+  
+for(j in 1:iterations)
+{
+DDSyesTrainIndices = sample(1:dim(DDSyesdf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+DDSnoTrainIndices = sample(1:dim(DDSnodf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+
+DDSyestrain = DDSyesdf[DDSyesTrainIndices,]
+DDSyestest = DDSyesdf[-DDSyesTrainIndices,]
+DDSnotrain = DDSnodf[DDSnoTrainIndices,]
+DDSnotest = DDSnodf[-DDSnoTrainIndices,]
+
+DDStrain = rbind(DDSyestrain, DDSnotrain)
+DDStest = rbind(DDSyestest, DDSnotest)
+
+for(i in 1:numks)
+{
+  classifications = knn(DDStrain[,c(2,5,7,8,10:12,14:16,18,20:22,25:36)],DDStest[,c(2,5,7,8,10:12,14:16,18,20:22,25:36)],DDStrain$Attrition, prob = TRUE, k = i)
+  table(classifications,DDStest$Attrition)
+  CM = confusionMatrix(table(classifications,DDStest$Attrition))
+  masterAcc[j,i]= CM$overall[1]
+  masterSpec[j,i] = CM$byClass[2]
+  masterSens[j,i] = CM$byClass[1]
+}
+
+}
+
+MeanAcc = colMeans(masterAcc)
+MeanSens = colMeans(masterSens)
+MeanSpec = colMeans(masterSpec)
+plot(seq(1,numks,1),MeanAcc, type = "l", xlab = 'k', ylab = 'Accuracy', main = "Mean Accuracy for Each k")
+plot(seq(1,numks,1),MeanSens, type = "l", xlab = 'k', ylab = 'Sensitivity', main = "Mean Sensitivity for Each k")
+plot(seq(1,numks,1),MeanSpec, type = "l", xlab = 'k', ylab = 'Specificity', main = "Mean Specificity for Each k")
+max(MeanSpec)
+```
+
+We then ran a Naive Bayes model with all the categorical variables. The results are significantly better than the results for the KNN model.
+```{r}
+# Baseline NB - Attrition
+iterations = 50
+splitPerc = .8
+masterAcc = matrix(nrow = iterations)
+masterSpec = matrix(nrow = iterations)
+masterSens = matrix(nrow = iterations)
+DDSyesdf = df[df$Attrition == 'Yes',]
+DDSnodf = df[df$Attrition == 'No',]
+
+for(j in 1:iterations)
+{
+  DDSyesTrainIndices = sample(1:dim(DDSyesdf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+  DDSnoTrainIndices = sample(1:dim(DDSnodf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+  
+  DDSyestrain = DDSyesdf[DDSyesTrainIndices,]
+  DDSyestest = DDSyesdf[-DDSyesTrainIndices,]
+  DDSnotrain = DDSnodf[DDSnoTrainIndices,]
+  DDSnotest = DDSnodf[-DDSnoTrainIndices,]
+  
+  DDStrain = rbind(DDSyestrain, DDSnotrain)
+  DDStest = rbind(DDSyestest, DDSnotest)
+
+  DDSmodel = naiveBayes(DDStrain[,c(2,4,6,9,17,19,24)], DDStrain$Attrition)
+  Predz = predict(DDSmodel, DDStest)
+  CM = confusionMatrix(table(Predz, DDStest$Attrition))
+  masterAcc[j] = CM$overall[1]
+  masterSpec[j] = CM$byClass[2]
+  masterSens[j] = CM$byClass[1]
+}
+mean(masterAcc)
+mean(masterSpec)
+mean(masterSens)
+```
+
+The next step was to do a logistic regression model with all the variables aside from a few that either didn't have any levels or were things like "employee ID" and a few handpicked interaction terms that appeared to be significant in the initial EDA. This model performed the most consistently so far. The inclusion of the feature selection protects us from overfitting. 
+```{r, echo=TRUE, results="hide", warnings = FALSE, message = FALSE}
+iterations = 50
+splitPerc = .8
+masterAcc = matrix(nrow = iterations)
+masterSpec = matrix(nrow = iterations)
+masterSens = matrix(nrow = iterations)
+logrdf = df[,c(-1, -10, -11, -23, -28)]
+DDSyesdf = logrdf[logrdf$Attrition == 'Yes',]
+DDSnodf = logrdf[logrdf$Attrition == 'No',]
+
+
+
+for(j in 1:iterations)
+{
+  DDSyesTrainIndices = sample(1:dim(DDSyesdf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+  DDSnoTrainIndices = sample(1:dim(DDSnodf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+  
+  DDSyestrain = DDSyesdf[DDSyesTrainIndices,]
+  DDSyestest = DDSyesdf[-DDSyesTrainIndices,]
+  DDSnotrain = DDSnodf[DDSnoTrainIndices,]
+  DDSnotest = DDSnodf[-DDSnoTrainIndices,]
+  
+  DDStrain = rbind(DDSyestrain, DDSnotrain)
+  DDStest = rbind(DDSyestest, DDSnotest)
+  DDSlogr.model = glm(Attrition ~ .  +  MaritalStatus*Age + BusinessTravel*MonthlyIncome, family=binomial, data = DDStrain)
+  stepModel = stepAIC(DDSlogr.model, trace = FALSE, direction = 'backward')
+  Predz = predict(stepModel, newdata = DDStest, type = 'response')
+  Probs = ifelse(Predz > 0.43, 'Yes', 'No')
+  CM = confusionMatrix(table(Probs, DDStest$Attrition), positive = 'Yes')
+  masterAcc[j] = CM$overall[1]
+  masterSpec[j] = CM$byClass[2]
+  masterSens[j] = CM$byClass[1]
+}
+summary(stepModel)
+
+```
+```{r}
+mean(masterAcc)
+mean(masterSpec)
+mean(masterSens)
+```
+
+This model has an overall accuracy that competes with our previous Naive Bayes model, and it have the highest average sensitivity of all the models that were tested. We do want the predict people that will leave accurately. If we predicted that no one would ever leave, we would have an accuracy of 83.9%. That is significantly higher than what this model predicts, but it would not be a very useful model to predict attrition. Compared to Naive Bayes and KNN, this is our best performing model so far. 
+```{r}
+set.seed(123)
+  DDSyesTrainIndices = sample(1:dim(DDSyesdf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+  DDSnoTrainIndices = sample(1:dim(DDSnodf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+  
+  DDSyestrain = DDSyesdf[DDSyesTrainIndices,]
+  DDSyestest = DDSyesdf[-DDSyesTrainIndices,]
+  DDSnotrain = DDSnodf[DDSnoTrainIndices,]
+  DDSnotest = DDSnodf[-DDSnoTrainIndices,]
+  
+  DDStrain = rbind(DDSyestrain, DDSnotrain)
+  DDStest = rbind(DDSyestest, DDSnotest)
+  DDSlogr.model = glm(Attrition ~ .  +  MaritalStatus*Age + BusinessTravel*MonthlyIncome, family=binomial, data = DDStrain)
+
+  stepModel = stepAIC(DDSlogr.model, trace = FALSE, direction = 'backward')
+  Predz = predict(stepModel, newdata = DDStest, type = 'response')
+  Probs = ifelse(Predz > 0.43, 'Yes', 'No')
+  CM = confusionMatrix(table(Probs, DDStest$Attrition), positive = 'Yes')
+```
+
+According to our model, the 3 most important factors in determining attrition are if someone works overtime, overall job satisfaction and job role, with manager and manufacturing director  less likely to leave than the rest of your employees, and sales representative more likely to leave than the rest of your employees. 
+```{r}
+summary(stepModel)  
+Predz = predict(stepModel, newdata = DDStest, type = 'response')
+Probs = ifelse(Predz > 0.43, 'Yes', 'No')
+CM = confusionMatrix(table(Probs, DDStest$Attrition), positive = 'Yes')
+masterAcc = CM$overall[1]
+masterSpec = CM$byClass[2]
+masterSens = CM$byClass[1]
+mean(masterAcc)
+mean(masterSpec)
+mean(masterSens)
+```
+
+The residual plots below look as expected for a logistic regression model. There don't seem to be any high residual / high leverage points. 
+```{r}
+plot(stepModel$residuals, ylab = 'Residuals', main = "Residual Plot")
+plot(stepModel)
+```
+
+Finally, an LDA mode was ran with all of the variables in it. Accuracy was too low to consider this model over Naive Bayes or logistic regression, so it seems that our best performer was the logistic regression model. 
+```{r}
+# LDA
+iterations = 100
+masterAcc = matrix(nrow = iterations)
+masterSpec = matrix(nrow = iterations)
+masterSens = matrix(nrow = iterations)
+splitPerc = .8
+DDSyesdf = df[df$Attrition == 'Yes',]
+DDSnodf = df[df$Attrition == 'No',]
+
+for(j in 1:iterations)
+{
+
+  DDSyesTrainIndices = sample(1:dim(DDSyesdf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+  DDSnoTrainIndices = sample(1:dim(DDSnodf)[1],round(splitPerc*dim(DDSyesdf)[1]))
+  
+  
+  DDSyestrain = DDSyesdf[DDSyesTrainIndices,]
+  DDSyestest = DDSyesdf[-DDSyesTrainIndices,]
+  DDSnotrain = DDSnodf[DDSnoTrainIndices,]
+  DDSnotest = DDSnodf[-DDSnoTrainIndices,]
+  
+  DDStrain = rbind(DDSyestrain, DDSnotrain)
+  DDStest = rbind(DDSyestest, DDSnotest)
+  LDA = df[ ,c(2,3,5,7,8,11:12,14:16,18,20:22,25:27,29:36)]
+  LDAtrain = DDStrain[ ,c(2,3,5,7,8,11:12,14:16,18,20:22,25:27,29:36)]
+  LDAtest = DDStest[ ,c(2,3,5,7,8,11:12,14:16,18,20:22,25:27,29:36)]
+  LDAmodel = lda(Attrition ~ ., data = LDAtrain)
+  LDApred = predict(LDAmodel, newdata = LDAtest)
+  CM = confusionMatrix(LDApred$class, LDAtest$Attrition, positive = 'Yes')
+  masterAcc[j] = CM$overall[1]
+  masterSpec[j] = CM$byClass[2]
+  masterSens[j] = CM$byClass[1]
+}
+mean(masterAcc)
+mean(masterSpec)
+mean(masterSens)
+```
+
+## Salary Prediction
+Through feature selection (not shown) and EDA (see graphs above), it was determined that age, PercentSalaryHike, JobLevel, TotalWorkingYears and YearsAtCompany were the variables needed to predict salary. See the model below, produced using those variables, 80% of the data being used as a training and 20% of the data used as a test set. Root mean squared error was used to score the model.
+```{r}
+#set.seed(1234)
+splitPerc = .8
+iterations = 100
+RMSE = matrix(nrow = iterations)
+for (i in 1:iterations)
+{
+DDSTrainIndices = sample(1:dim(df)[1],round(splitPerc*dim(df)[1]))
+
+DDStrain = DDSnodf[DDSTrainIndices,]
+DDStest = df[-DDSTrainIndices,]
+
+DDSlinmodel=lm(MonthlyIncome ~ Age + PercentSalaryHike + JobLevel + TotalWorkingYears + YearsAtCompany, data = DDStrain)
+summary(DDSlinmodel)
+regPreds = predict(DDSlinmodel, DDStest)
+RMSE[i] = mean(sqrt((regPreds - DDStest$MonthlyIncome)^2))
+
+}
+mean(RMSE)
+```
+```{r}
+set.seed(1234)
+splitPerc = .8
+
+DDSTrainIndices = sample(1:dim(df)[1],round(splitPerc*dim(df)[1]))
+
+DDStrain = DDSnodf[DDSTrainIndices,]
+DDStest = df[-DDSTrainIndices,]
+
+DDSlinmodel=lm(MonthlyIncome ~ Age + PercentSalaryHike + JobLevel + TotalWorkingYears + YearsAtCompany, data = DDStrain)
+summary(DDSlinmodel)
+regPreds = predict(DDSlinmodel, DDStest)
+RMSE = mean(sqrt((regPreds - DDStest$MonthlyIncome)^2))
+
+RMSE
+```
+
+All variables are statistically significant aside from Age and PercentSalaryHike. Those remain in the model as RMSE went up when we remove those variables from the data set. Our specific test/train split resulted in a model that had an root mean squared error of \$1,109.95, well within the desired RMSE of \$3,000. The adjusted R-squared was 0.9066. See model diagnostics below.
+
+```{r}
+plot(DDSlinmodel$residuals, ylab = 'Residuals', main = "Residual Plot")
+plot(DDSlinmodel)
+```
+
+There is some slight breaks from normality in the residuals at the tails of the QQ plot. Given that the residuals plot looks like a random cloud, I think it's safe to assume normality and constant standard deviation of residuals for this model. 
+
+
+
+
