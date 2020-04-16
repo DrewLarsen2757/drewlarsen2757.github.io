@@ -8,6 +8,6 @@ navbar:
       href: AboutMe.html
     - text: "Beer Study"
       href: Beer.html
-    - text: "Frito Lay Employee Data Study"
+    - text: "Employee Data Study"
       href: Project2.html
       
